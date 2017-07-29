@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fbutton="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical" android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <info.hoang8f.widget.FButton
+        android:id="@+id/default_bubbleButton"
+        android:layout_width="160dp"
+        android:layout_height="33dp"
+        android:shadowColor="#3786A8"
+        android:background="@drawable/buttonshape"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="5"
+        android:text="Button"
+        android:textColor="#FFFFFF"
+        android:textSize="10sp"
+        android:clickable="true"/>
+
+</LinearLayout>
