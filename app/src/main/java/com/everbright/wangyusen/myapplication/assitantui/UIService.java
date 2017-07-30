@@ -1,43 +1,29 @@
 package com.everbright.wangyusen.myapplication.assitantui;
-
-
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
-import android.graphics.PointF;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.IBinder;
-import android.support.annotation.MainThread;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-
 import android.widget.Button;
 import android.widget.ImageView;
-
-
 import com.everbright.wangyusen.myapplication.Bubble;
-import com.everbright.wangyusen.myapplication.MainActivity;
-
 import com.everbright.wangyusen.myapplication.R;
-
 import java.util.Timer;
 import java.util.TimerTask;
 import android.os.Handler;
-
-
 
 /**
  * Created by wangyusen on 7/26/17.
@@ -123,7 +109,13 @@ public class UIService extends Service {
         chatHead.setBackground(getDrawable(R.drawable.corner));
 //        chatHead.setBackgroundColor(bubble.fBbutton.getButtonColor());
         final WindowManager.LayoutParams params2 = params;
-        chatHead.setOnClickListener(new View.OnClickListener() {
+
+        Log.i("params", String.valueOf(params));
+        LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View c=inflater.inflate(R.layout.image_icon, null);
+        final ImageView test = c.findViewById(R.id.imageView);
+
+        test.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(mlayout != null && bubble.fBbutton!=null&& mlayout.getWindowToken()!=null) {
@@ -151,15 +143,47 @@ public class UIService extends Service {
             }
         });
 
+        test.setImageDrawable(getDrawable(R.drawable.contact_icon));
+        test.setBackground(getDrawable(R.drawable.corner));
 
-        windowManager.addView(chatHead, params);
-        Log.i("params", String.valueOf(params));
+        /**
+         * wait fot the layout to load
+         */
+        windowManager.addView(c, params);
+        ViewTreeObserver vto = test.getViewTreeObserver();
+        vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener(){
 
 
-        params2.x = 125;
-        windowManager.addView(mlayout, params2);
+            @Override
+            public boolean onPreDraw() {
+                params2.x = test.getMeasuredWidth();
+                if(params2.x> 0){
+                    Log.i("aaa", String.valueOf(params2));
+                    return true;
+                }
+                Log.i("aaa", String.valueOf(params2));
 
-    }
+                return false;
+            }
+        });
+        bubble.setBubbleText("first line", "second line");
+
+        /**
+         * get the parameter
+         */
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+                           @Override
+                           public void run() {
+                               runOnUiThread(new Runnable() {
+                                   @Override
+                                   public void run() {
+                                       windowManager.addView(mlayout,params2);
+                                       Log.i("actual", String.valueOf(params2));
+                                   }
+                               });
+                           }
+                       },100);}
 
     /**
      * create UI thread
@@ -176,26 +200,31 @@ public class UIService extends Service {
         /**
          * prevent it from killing it self;
          */
-        Intent intent_ = new Intent(this, MainActivity.class);
-        intent_.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent_, 0);
+        Log.e("service","549668785" );
+        Intent notificationIntent = new Intent(this, UIService.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-        Notification noti = new Notification.Builder(getApplicationContext())
-                .setContentTitle("Pratikk")
-                .setContentText("Subject")
-                .setSmallIcon(R.drawable.ic_home_white_24px)
+        Notification notification = new Notification.Builder(this)
+                .setContentTitle("uiservice")
+                .setContentText("okkk")
+                .setSmallIcon(R.drawable.contact_icon)
                 .setContentIntent(pendingIntent)
+                .setTicker("wow")
                 .build();
-        startForeground(1234, noti);
+
+        startForeground(7, notification);
         return Service.START_STICKY;
     }
+
 
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (chatHead != null) windowManager.removeView(chatHead);
+        Log.i("ondestroy", "servicedestroyed");
+//        if (chatHead != null) windowManager.removeView(chatHead);
     }
+
 }
 
 

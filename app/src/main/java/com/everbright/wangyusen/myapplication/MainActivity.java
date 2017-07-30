@@ -8,10 +8,10 @@ import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 
 
 import com.everbright.wangyusen.myapplication.assitantui.UIService;
-
 import info.hoang8f.widget.FButton;
 
 
@@ -26,6 +26,8 @@ public class MainActivity extends AppCompatActivity {
 //        setContentView(R.layout.activity_main);
 //        startActivity(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)); use this to check user permission
         checkDrawOverlayPermission();
+
+//        startService(new Intent(getBaseContext(),UIService.class));
 
 
     }
@@ -43,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
         else{
+            Log.i("servic", "okkk");
             startService(new Intent(getBaseContext(), UIService.class));
         }
     }
@@ -57,10 +60,12 @@ public class MainActivity extends AppCompatActivity {
 
             if (Settings.canDrawOverlays(this)) {
                 // continue here - permission was granted
+                Log.i("servic", "okkk");
                 startService(new Intent(this, UIService.class));
 
             }
         }
     }
+
 
 }

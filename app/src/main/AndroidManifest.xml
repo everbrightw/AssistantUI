@@ -19,6 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <service android:name=".assitantui.UIService"
+
             />
         <activity android:name=".MainActivity">
             <intent-filter>

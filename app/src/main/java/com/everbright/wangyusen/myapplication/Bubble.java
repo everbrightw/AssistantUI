@@ -22,7 +22,7 @@ import info.hoang8f.widget.FButton;
 public class Bubble extends android.support.v7.widget.AppCompatButton{
     public FButton fBbutton;
     public ImageView mImageView;
-    
+
 
     public static int X_OFFSET_POSITION = 125;
 
@@ -101,6 +101,10 @@ public class Bubble extends android.support.v7.widget.AppCompatButton{
     public void setBubbleIcon(int image){
         this.mImageView.setImageResource(image);
     }
+    public void setBubbleText(String first_line, String second_line){
+        fBbutton.setText(first_line + "\n "+ second_line );
+    }
+
 
 
 
