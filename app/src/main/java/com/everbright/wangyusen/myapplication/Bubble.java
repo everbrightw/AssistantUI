@@ -22,11 +22,11 @@ import info.hoang8f.widget.FButton;
 public class Bubble extends android.support.v7.widget.AppCompatButton{
 
     public FButton fButton;
-    public ImageView mImageView;
+    public ImageView imageIcon;
     public long bubbleID;
-    public WindowManager windowManager;
     public View imageView;
     public View buttonView;
+
     public View trashView;
     public ImageView trashImage;
     /**
@@ -41,29 +41,24 @@ public class Bubble extends android.support.v7.widget.AppCompatButton{
         super(context);
         this.bubbleID = bubbleID;
         // TODO: move this out, share one WindowManager across bubbles.
-        windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 
         imageView = initializeView(context, R.layout.image_icon);
         buttonView = initializeView(context, R.layout.fbbutton);
 
         // TODO: clarify naming
         fButton = buttonView.findViewById(R.id.default_bubbleButton);
-        mImageView = imageView.findViewById(R.id.imageView);
-        fButton.setBackgroundColor(context.getColor(R.color.fbutton_color_silver));
-        fButton.setCornerRadius(50);
-        fButton.setHeight(1);
-        mImageView.setImageDrawable(context.getDrawable(R.drawable.contact_icon));
-        mImageView.setBackgroundColor(context.getColor(R.color.fbutton_default_color));
-        mImageView.setBackground(context.getDrawable(R.drawable.corner));
+        imageIcon = imageView.findViewById(R.id.imageView);
+
+        setFButton(context,R.color.fbutton_color_orange, "firstline", "secondline");
+        setImageIcon(context, R.drawable.contact_icon, R.color.fbutton_default_color, R.drawable.corner);
 
 
-        // TODO: Share one. Move this out
         trashView = initializeView(context, R.layout.trash_layout);
         trashImage = trashView.findViewById(R.id.imageView2);
         trashImage.setImageDrawable(context.getDrawable(R.drawable.trash));
         trashImage.setBackgroundColor(context.getColor(R.color.fbutton_color_orange));
 
-        this.setBubbleText("first line", "second line");
+
     }
 
     /**
@@ -71,8 +66,18 @@ public class Bubble extends android.support.v7.widget.AppCompatButton{
      * @param context
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public void setDefaultBubble(Context context){
+    public void setImageIcon(Context context, int drawble_icon, int color_background, int drawable_background){
+        imageIcon.setImageDrawable(context.getDrawable(drawble_icon));
+        imageIcon.setBackgroundColor(context.getColor(color_background));
+        imageIcon.setBackground(context.getDrawable(drawable_background));
 
+    }
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    public void setFButton(Context context, int color, String firstLine, String secondLine){
+        fButton.setButtonColor(context.getColor(color));
+        fButton.setCornerRadius(50);
+        fButton.setHeight(1);
+        setBubbleText(firstLine, secondLine);
 
     }
 
@@ -80,9 +85,7 @@ public class Bubble extends android.support.v7.widget.AppCompatButton{
         View layout_view = initializeView(context, mLayout);
         fButton = layout_view.findViewById(button_id);
     }
-    public void setButtonColor(int color){
-        fButton.setButtonColor(color);
-    }
+
 
     /**
      * initialize the view from your layout
@@ -100,7 +103,7 @@ public class Bubble extends android.support.v7.widget.AppCompatButton{
      * image of phone icon
      */
     public void initializePhoneIcon(){
-        mImageView.setImageResource(R.drawable.contact_icon);
+        imageIcon.setImageResource(R.drawable.contact_icon);
     }
 
     /**
@@ -124,7 +127,7 @@ public class Bubble extends android.support.v7.widget.AppCompatButton{
      * set image view
      */
     public void setBubbleIcon(int image){
-        this.mImageView.setImageResource(image);
+        this.imageIcon.setImageResource(image);
     }
 
     public void setBubbleText(String first_line, String second_line){

@@ -9,8 +9,6 @@ import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-
-
 import com.everbright.wangyusen.myapplication.assitantui.UIService;
 import info.hoang8f.widget.FButton;
 

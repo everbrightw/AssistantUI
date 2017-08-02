@@ -9,13 +9,11 @@ import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -24,13 +22,11 @@ import android.widget.ImageView;
 import com.everbright.wangyusen.myapplication.Bubble;
 import com.everbright.wangyusen.myapplication.BubbleEvent;
 import com.everbright.wangyusen.myapplication.R;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import android.os.Handler;
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
@@ -66,7 +62,7 @@ public class UIService extends Service {
         mWindowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         myEventBus.register(this);
         myEventBus.post(new BubbleEvent("1"));
-        myEventBus.post(new BubbleEvent("2"));
+
     }
 
     /**
@@ -84,7 +80,6 @@ public class UIService extends Service {
         /**
          * prevent it from killing it self;
          */
-        Log.e("service","549668785" );
         Intent notificationIntent = new Intent(this, UIService.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
@@ -105,7 +100,6 @@ public class UIService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.i("ondestroy", "servicedestroyed");
         myEventBus.unregister(this);
 //        if (chatHead != null) windowManager.removeView(chatHead);
     }
@@ -115,7 +109,9 @@ public class UIService extends Service {
     @Subscribe
     // This method will be called when a HelloWorldEvent is posted
     public void onEvent(BubbleEvent event){
-        runTheFuckingCoolThing(50, 1);
+        //// TODO: 8/2/17 use the event to get the query id and create new task 
+        newBubbleTask(7);
+        runTheFuckingCoolThing(50, 7);
     }
 
     /**
@@ -136,8 +132,10 @@ public class UIService extends Service {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public void runTheFuckingCoolThing(int yPosition, int query_id){
-        testBubble = new Bubble(this, query_id);
+    public void runTheFuckingCoolThing(int yPosition, long query_id){
+
+        mBubbleMap.put(String.valueOf(query_id), new Bubble(this, query_id));
+        final Bubble currentBubble = mBubbleMap.get(String.valueOf(query_id));
         handler = new Handler();
         windowWidth = mWindowManager.getDefaultDisplay().getWidth();
         windowHeight = mWindowManager.getDefaultDisplay().getHeight();
@@ -146,17 +144,15 @@ public class UIService extends Service {
          * display the image icon, and wait it loading to get second params for button
          */
         displayImageIcon(query_id, 0,yPosition);
-        ViewTreeObserver vto = testBubble.mImageView.getViewTreeObserver();
+        ViewTreeObserver vto = currentBubble.imageIcon.getViewTreeObserver();
         vto.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener(){
             @Override
             public boolean onPreDraw() {
-                params2.x = testBubble.mImageView.getMeasuredWidth();
+                params2.x = currentBubble.imageIcon.getMeasuredWidth();
                 if(params2.x> 0){
-                    Log.i("aaa", String.valueOf(params2));
+
                     return true;
                 }
-                Log.i("aaa", String.valueOf(params2));
-
                 return false;
             }
         });
@@ -174,7 +170,6 @@ public class UIService extends Service {
                     public void run() {
 //                                       windowManager.addView(mlayout,params2);
                         displayNewBubble(7, params2.x, params2.y);
-                        Log.i("actual", String.valueOf(params2));
                     }
                 });
             }
@@ -200,28 +195,29 @@ public class UIService extends Service {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void displayNewBubble(final long query_id, int xPosition, int yPosition){
+        final Bubble currentBubble = mBubbleMap.get(String.valueOf(query_id));
 
         //TODO
-        mWindowManager.addView(testBubble.buttonView, getParams(xPosition, yPosition));
+        mWindowManager.addView(currentBubble.buttonView, getParams(xPosition, yPosition));
 
         /**
          * listen for clicking
          */
-        testBubble.fButton.setOnClickListener(new View.OnClickListener() {
+        currentBubble.fButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                testBubble.status = 1;//clicked
+                currentBubble.status = 1;//clicked
 //                dismissWholeBubbleImediate(query_id);
-                Log.i("button", "clicked");
             }
         });
     }
     //TODO: merge
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void displayImageIcon(long query_id, int xPosition, int yPosition){
+        Bubble currentBubble = mBubbleMap.get(String.valueOf(query_id));
 
-        mWindowManager.addView(testBubble.imageView, getParams(xPosition, yPosition));
-        Log.i("displayed","cccc");
+        mWindowManager.addView(currentBubble.imageView, getParams(xPosition, yPosition));
+
 
         /**
          * motion dected;
@@ -232,17 +228,18 @@ public class UIService extends Service {
      * with image icon listener
      */
 
-    public void dismissButtonWithAnimation(long bubble_id){
-        testBubble.status = 2;// manual dismiss
-        Log.i("13613215058", "oook");
-        testBubble.imageView.setOnClickListener(new View.OnClickListener() {
+    public void dismissButtonWithAnimation(long query_id){
+        final Bubble currentBubble = mBubbleMap.get(String.valueOf(query_id));
+        currentBubble.status = 2;// manual dismiss
+
+        currentBubble.imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(testBubble.buttonView != null && testBubble.fButton!=null&& testBubble.buttonView.getWindowToken()!=null) {
-                    Log.i("13613215058", "ok");
+                if(currentBubble.buttonView != null && currentBubble.fButton!=null&& currentBubble.buttonView.getWindowToken()!=null) {
+
                     Animation animation = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_in_animation);
 
-                    testBubble.fButton.startAnimation(animation);
+                    currentBubble.fButton.startAnimation(animation);
                     Timer timer = new Timer();
                     timer.schedule(new TimerTask() {
                         @Override
@@ -250,11 +247,11 @@ public class UIService extends Service {
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    if(testBubble.buttonView.getWindowToken()!=null){
+                                    if(currentBubble.buttonView.getWindowToken()!=null){
                                         /**
                                          * check if the window manager contains the layout
                                          */
-                                        mWindowManager.removeViewImmediate(testBubble.buttonView);
+                                        mWindowManager.removeViewImmediate(currentBubble.buttonView);
                                     }
                                 }
                             });
@@ -263,12 +260,12 @@ public class UIService extends Service {
 
                 }
                 else{
-                    Log.i("13613215058", "ook");
-                    mWindowManager.addView(testBubble.buttonView,getParams(132,50));
+
+                    mWindowManager.addView(currentBubble.buttonView,getParams(132,50));
                 }
             }
         });
-        setImageViewLongClick(testBubble);
+        setImageViewLongClick(currentBubble);
     }
 
     public void setImageViewLongClick(Bubble bubble){
@@ -279,7 +276,7 @@ public class UIService extends Service {
             @Override
             public boolean onLongClick(View view) {
                 if(view!=null){
-                    dismissWholeBubbleImediate(5);
+                    dismissWholeBubbleImediate(7);
                     return true;
                 }
                 return false;
@@ -293,7 +290,6 @@ public class UIService extends Service {
      */
     public void loadWebView(String html){
         html = "<html><body>Hello, World!</body></html>";//use for test
-
         String mime = "text/html";
         String encoding = "utf-8";
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -308,7 +304,7 @@ public class UIService extends Service {
         bubble.imageView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                Log.i("ok", "motion");
+
                 WindowManager.LayoutParams layoutParams = (WindowManager.LayoutParams) bubble.imageView.getLayoutParams();
 
                 switch(motionEvent.getAction())
@@ -327,8 +323,6 @@ public class UIService extends Service {
                         if(y_cord>windowHeight){y_cord=windowHeight;}
                         layoutParams.x = x_cord;
                         layoutParams.y = y_cord - windowHeight/2;
-                        Log.i("yyy", String.valueOf(layoutParams.y));
-                        Log.i("yyyx", String.valueOf(layoutParams.x));
 
                         mWindowManager.updateViewLayout(bubble.imageView, getParams(layoutParams.x, layoutParams.y));
                         mWindowManager.updateViewLayout(bubble.buttonView, getParams(layoutParams.x + 132, layoutParams.y));
@@ -363,7 +357,7 @@ public class UIService extends Service {
         LayoutInflater inflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final Bubble current_bubble = new Bubble(this, bubble_id);
         final View mLayout = inflater.inflate(R.layout.fbbutton,null);
-        final ImageView mImageView = (ImageView) inflater.inflate(R.layout.image_icon,null);
+        final ImageView imageIcon = (ImageView) inflater.inflate(R.layout.image_icon,null);
 
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -375,9 +369,9 @@ public class UIService extends Service {
                         /**
                          * delete icon and button
                          */
-                        if(mLayout.getWindowToken()!=null && mImageView.getWindowToken()!=null){
-                            current_bubble.windowManager.removeViewImmediate(mLayout);
-                            current_bubble.windowManager.removeViewImmediate(mImageView);
+                        if(mLayout.getWindowToken()!=null && imageIcon.getWindowToken()!=null){
+                            mWindowManager.removeViewImmediate(mLayout);
+                            mWindowManager.removeViewImmediate(imageIcon);
                         }
                     }
                 });
@@ -387,9 +381,12 @@ public class UIService extends Service {
     }
 
     public void dismissWholeBubbleImediate(long query_id){
-        if(testBubble.imageView.getWindowToken() !=null && testBubble.buttonView !=null){
-            mWindowManager.removeViewImmediate(testBubble.imageView);
-            mWindowManager.removeViewImmediate(testBubble.buttonView);
+        Bubble currentBubble = mBubbleMap.get(String.valueOf(query_id));
+        if(currentBubble.imageView.getWindowToken() !=null){
+            mWindowManager.removeViewImmediate(currentBubble.imageView);
+            if(currentBubble.buttonView.getWindowToken()!=null){
+            mWindowManager.removeViewImmediate(currentBubble.buttonView);
+        }
         }
     }
 }
